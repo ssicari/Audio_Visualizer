@@ -156,6 +156,13 @@ void Visualizer::visualization()
 	    }
 	}
 
+	if (background_music.getStatus() == sf::Music::Stopped)
+	  {
+	     background_music.stop();
+	     window.close();
+	     std::exit(0);
+	  }
+
 
         window.display();
 
