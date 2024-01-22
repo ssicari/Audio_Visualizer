@@ -3,18 +3,15 @@
 #include "AudioDecoder.hpp"
 #include "Visualizer.hpp"
 
-Visualizer::Visualizer(const std::vector<double>& frequencies, double scaleFactor, std::string file_path)
-    : frequencies(frequencies), scaleFactor(scaleFactor), file_path(file_path), currentIndex(0) // Declare currentIndex here
+Visualizer::Visualizer(const std::vector<double>& frequencies, double scale_factor, std::string file_path)
+    : frequencies(frequencies), scale_factor(scale_factor), file_path(file_path), current_index(0)
 {
     size_t slash = file_path.find_last_of('/');
     std::string song = file_path.substr(slash + 1);
 
     // SFML setup
     window.create(sf::VideoMode::getFullscreenModes()[0], "Now Playing: " + song, sf::Style::Titlebar);
-    graph.setPrimitiveType(sf::Points); // Changed to Points for dynamic shapes
-
-    // If you want to set a specific background color, you can uncomment the following line
-    // window.clear(sf::Color::Black);
+    graph.setPrimitiveType(sf::Points);
 
     if (!background_music.openFromFile(file_path))
     {
@@ -27,7 +24,7 @@ Visualizer::Visualizer(const std::vector<double>& frequencies, double scaleFacto
 void Visualizer::visualization()
 {
     sf::Clock clock;
-    const sf::Time frameTime = sf::milliseconds(90); // Adjust the frame time based on your preference (60 FPS in this example)
+    const sf::Time frame_time = sf::milliseconds(90);
 
     while (window.isOpen())
     {
@@ -43,41 +40,129 @@ void Visualizer::visualization()
         window.clear();
 
         // Check the current frequency
-        double currentFrequency = (frequencies[currentIndex] * scaleFactor);
+        double current_frequency = (frequencies[current_index] * scale_factor);
+	sf::CircleShape circle(2.0f * current_frequency, 3);
+	//sf::CircleShape circle(2.0f * current_frequency, 4);
+	//sf::CircleShape circle(2.0f * current_frequency, 8);
 
-        // Draw a growing transparent center green circle
-        sf::CircleShape circle(2.0f * currentFrequency);
-        circle.setPosition(window.getSize().x / 2.0f - 2.0f * currentFrequency, window.getSize().y / 2.0f - 2.0f * currentFrequency);
-        circle.setFillColor(sf::Color(0, 255, 0, 0)); // Green with 50% transparency
-        circle.setOutlineColor(sf::Color::Green); // Green outline color
-        circle.setOutlineThickness(2.0f); // Adjust the outline thickness
+        circle.setPosition(window.getSize().x / 2.0f - 2.0f * current_frequency, window.getSize().y / 2.0f - 2.0f * current_frequency);
+        circle.setFillColor(sf::Color(0, 255, 0, 0));
+	//std::cout << "Freq: " << current_frequency << std::endl;
 
-	/*float circleRadius = circle.getRadius();
-        sf::Vector2f circlePosition(
-            std::max(circleRadius, std::min(view.getSize().x - circleRadius, view.getCenter().x - 5.0f * static_cast<float>(currentFrequency))),
-            std::max(circleRadius, std::min(view.getSize().y - circleRadius, view.getCenter().y - 5.0f * static_cast<float>(currentFrequency)))
-        );
+	if (current_frequency <= 50)
+	  {
+	    circle.setOutlineColor(sf::Color::Blue);
+	  }
+	else if (current_frequency > 50 && current_frequency <= 100)
+	  {
+	    circle.setOutlineColor(sf::Color::Cyan);
+	  }
+	else if (current_frequency > 100 && current_frequency <= 150)
+	  {
+	    circle.setOutlineColor(sf::Color::Green);
+	  }
+	else if (current_frequency > 150 && current_frequency <= 200)
+	  {
+	    circle.setOutlineColor(sf::Color::Yellow);
+	  }
+	else if (current_frequency > 200 && current_frequency <= 250)
+	  {
+	    circle.setOutlineColor(sf::Color::Red);
+	  }
+	else if (current_frequency > 250 && current_frequency <= 300)
+	  {
+	    circle.setOutlineColor(sf::Color::Magenta);
+	  }
+	else if (current_frequency > 300)
+	  {
+	    circle.setOutlineColor(sf::Color::White);
+	  }
 
-        circle.setPosition(circlePosition);*/
+	circle.setOutlineThickness(2.0f); // Adjust the outline thickness
+	window.draw(circle);
 
-        window.draw(circle);
 
-        // Move to the next frequency
-        currentIndex++;
-
-        // Reset index if we reached the end
-        if (currentIndex >= frequencies.size())
+	for (int i = 1; i <= 5; ++i)
         {
-            currentIndex = 0;
+            sf::CircleShape glowCircle(2.0f * current_frequency, 3);
+            glowCircle.setPosition(window.getSize().x / 2.0f - 2.0f * current_frequency, window.getSize().y / 2.0f - 2.0f * current_frequency);
+            glowCircle.setFillColor(sf::Color::Transparent);
+            glowCircle.setOutlineColor(sf::Color(255, 255, 255, 0)); // Adjust opacity
+            glowCircle.setOutlineThickness(5.0f);
+            window.draw(glowCircle);
         }
 
         window.display();
 
-        // Introduce a delay to control FPS
-        sf::Time elapsed = clock.restart();
-        if (elapsed < frameTime)
+        // Move to the next frequency
+        current_index++;
+
+        // Reset index if we reached the end
+        if (current_index >= frequencies.size())
         {
-            sf::sleep(frameTime - elapsed);
+            current_index = 0;
+        }
+
+
+	const float rotation_speed = 400.0f;
+        const float square_size = 675.0f;
+        const double frequency_threshold = 255.0; // Adjust the frequency threshold as needed
+
+        if (current_frequency > frequency_threshold)
+        {
+            for (float angle = 0.0f; angle < 360.0f; angle += 45.0f)
+            {
+                sf::RectangleShape spinning_square(sf::Vector2f(square_size, square_size));
+		spinning_square.setPosition(window.getSize().x / 2.0f, window.getSize().y / 2.0f);
+                spinning_square.setFillColor(sf::Color(0, 255, 0, 0)); // Adjust color as needed
+		spinning_square.setOutlineColor(sf::Color::White);
+		spinning_square.setOutlineThickness(1.5f);
+                spinning_square.setRotation(angle + rotation_speed * clock.getElapsedTime().asSeconds() * 180.0f / 3.141592f);
+                window.draw(spinning_square);
+            }
+        }
+
+
+	const double growing_circle_frequency_upper_threshold = 200.0;
+	const double growing_circle_frequency_lower_threshold = 50.0;
+	const float growing_circle_growth_rate = 40.0f;
+	const int max_iterations = 50;  // Adjust the maximum number of iterations
+	//int current_iteration = 0;
+
+	if (current_frequency >= growing_circle_frequency_lower_threshold && current_frequency <= growing_circle_frequency_upper_threshold)
+	{
+	    // Check if the maximum number of iterations is reached
+	    if (current_iteration < max_iterations)
+	    {
+	        // Calculate the incremental radius growth
+	        float incremental_growth = current_iteration * growing_circle_growth_rate;
+
+	        // Create a growing transparent circle
+	        sf::CircleShape growing_circle(incremental_growth);
+	        growing_circle.setOrigin(incremental_growth, incremental_growth);
+	        growing_circle.setPosition(window.getSize().x / 2.0f, window.getSize().y / 2.0f);
+	        growing_circle.setFillColor(sf::Color(0, 255, 0, 0));
+	        growing_circle.setOutlineColor(sf::Color((current_index * 100), (current_index / 2), (current_index))); // Adjust color as needed
+	        growing_circle.setOutlineThickness(7.f);
+	        window.draw(growing_circle);
+
+	        // Increment the iteration counter
+	        current_iteration++;
+	    }
+	    else
+	    {
+	        // Reset the counter when the maximum iterations are reached
+	        current_iteration = 0;
+	    }
+	}
+
+
+        window.display();
+
+        sf::Time elapsed = clock.restart();
+        if (elapsed < frame_time)
+        {
+            sf::sleep(frame_time - elapsed);
         }
     }
 }
