@@ -1,4 +1,6 @@
-# Audio Visualizer - Real-Time Frequency Analysis
+# README
+
+## Audio Visualizer - Real-Time Frequency Analysis
 
 © 2025 Sal Sicari
 
